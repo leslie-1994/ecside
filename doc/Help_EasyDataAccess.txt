@@ -1,0 +1,206 @@
+EasyDataAccess 组件简介。
+
+ECSide 里加入了 easyList特性。可以通过在xml里配制sql语句来快速的展现列表。
+
+最近我将该功能模块进行了重构，使其可以脱离ecside来使用，从而可以用来简化其他的数据库操作。
+
+
+场景1 ：
+对 USER_INFO 表进行查询。 查询条件为 USERNAME GENDER。
+
+第1步：定义spring文件：
+[code]
+    <bean id="testQuery1" class="org.ecside.easyda.DataAccessModel">
+    <!-- 注入一个标准的数据源 -->
+	<property name="dataSource" ref="test_datasource" />
+        <property name="sqls">
+            <map>
+	     <!-- 这个key的名字随便取 -->
+                <entry key="queryInfoByNameGender" >
+			<value>
+				select * from user_info 
+				where 1=1 
+				#{IF:USERNAME!=EMPTY} and username like #{USERNAME} #{/IF}
+				#{IF:GENDER!=EMPTY} and gender=#{GENDER} #{/IF}
+			</value>
+		</entry>
+
+            </map>
+        </property>
+    </bean>
+[/code]
+第2步，在适当的位置（如BO中）执行下列java代码
+
+[code]
+// 这里也可以使用 Ioc 注入。
+DataAccessModel dam=(DataAccessModel)factory.getBean("testQuery1");
+//parameterMap为传入参数，key为USERNAME GENDER。
+List list=(List)dam.executeQuery("queryInfoByNameGender", parameterMap);
+[/code]
+ok，执行完了,执行的每条结果会放入MAP，所有的MAP最后放入LIST
+Map的Key是SQL语句执行结果的各个列的名字。
+
+其中 #{USERNAME} #{GENDER} 为参数在传入的参数Map中的key.
+
+其中 #{IF..} 字句用来拼装SQL.。 
+其语义为 如果满足条件 就把IF内的字符串拼接到有效的SQL语句中。
+支持简单的条件：
+A<B :   #{IF:A#{_L}B}....{/IF}
+A>B :   #{IF:A#{_G}B}....{/IF}
+A=B :   #{IF:A=B}....{/IF}
+A!=B :   #{IF:A!=B}....{/IF}
+A<=B :   #{IF:A#{_L}=B}....{/IF}
+A>=B :   #{IF:A#{_G}=B}....{/IF}
+
+A为参数（的KEY）， B为数值，可以是EMPTY NULL 字符串 数字 等如
+#{IF:USERNAME!='admin'}....{/IF}
+#{IF:AGE #{_L}= 18}....{/IF}
+
+注意 < >于号出现在 sql语句中时也请使用 #{_L} #{_G}
+#{IF:A=B}....{/IF} 内部 可以是任何语句，也可以使用任何参数。不一定非要是A.
+例如 这样也是可以的
+#{IF:USERROLE='1'}  and (GENDER = ${XXXX} or AGE ${_L} 25 {/IF}
+
+传入参数可以使用组件中提供的getParameterMap方法从request中自动生成，相应的代码很简单：
+[code]
+	public static Map getParameterMap(HttpServletRequest request) {
+		Map parameterMap = new HashMap();
+		Enumeration names = request.getParameterNames();
+		while (names.hasMoreElements()) {
+			String name = (String) names.nextElement();
+			String[] s = request.getParameterValues(name);
+			if (s != null) {
+				if (s.length == 1) {
+					parameterMap.put(name, request.getParameterValues(name)[0]);
+				} else {
+					parameterMap.put(name, request.getParameterValues(name));
+				}
+			}
+		}
+		return parameterMap;
+	}
+[/code]
+
+如果查询叶面的input区域是 
+姓名：<input type="text" name="i_user_name"> 
+性别：<input type="text" name="i_user_gender"> 
+通过 getParameterMap 取得参数map后，如果想直接调用sql 
+
+那么sql需要改动为
+[code]
+<entry key="queryInfoByNameGender" >
+	<value>
+		select * from user_info 
+		where 1=1 
+		#{IF:i_user_name!=EMPTY} and username like #{i_user_name} #{/IF}
+		#{IF:i_user_gender!=EMPTY} and gender=#{i_user_gender} #{/IF}
+	</value>
+</entry>
+[/code]
+
+
+一个DataAccessModel bean里可以写入多个sql.
+可以是 delete update insert select  {call...
+例如下面这个
+[code]
+    <bean id="myEasyDA" class="demo.MyDataAccessModel">
+		<property name="dataSource" ref="test_datasource" />
+        <property name="sqls">
+            <map>
+	      <entry key="baseInfo1" >
+			<value>
+				{call CM_CUST_REAL_INFO_P(
+					#{I_SERVICE_KIND},
+					#{I_SERVICE_NO},
+					#{I_CITY_CODE},
+					#{I_SERVICE_ID},
+					#{I_CUSTOMER_ID},
+
+					#{OUT:OUT_F_CUST_NAME},
+					#{OUT:OUT_F_GENDER},
+					#{OUT:OUT_F_DUTY},
+					#{OUT:OUT_F_PRODUCT_NAME},
+					#{OUT:OUT_F_POINT_VALUE},
+					#{OUT:OUT_F_STATUS},
+					#{OUT:ON_FLAG},
+					#{OUT:OS_PROMPT}
+				)}
+			</value>
+		</entry>
+                <entry key="updateUser" >
+					<value>
+						update user_info set 
+						passwd=#{PASSWD} , 
+						userrole=#{USERROLE} ,
+						email=#{EMAIL}, 
+						gender=#{GENDER} 
+						WHERE userid=#{USERID}
+					</value>
+				</entry>
+                <entry key="deleteUser" >
+					<value>
+						delete from user_info 
+						WHERE userid=#{USERID}
+					</value>
+				</entry>
+                <entry key="getUserMemo" >
+					<value>
+						select MEMO,EMAIL
+						from user_info WHERE userid=#{USERID}
+					</value>
+				</entry>
+            </map>
+        </property>
+    </bean>
+   [/code]
+ 其中 #{OUT:...} 用来标识 存储过程的输出参数。
+其中的 demo.MyDataAccessModel 继承自 org.ecside.easyda.DataAccessModel
+你可以在这个类里覆盖父类的registerInterceptors方法，为每个sql添加前后拦截器。
+代码如下：
+[code]
+public class MyDataAccessModel extends DataAccessModel {
+
+	public void registerInterceptors(){
+		addInterceptor(new DataAccessInterceptor("updateUser"){
+
+			public void before(Map parameterMap, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+				
+			}
+
+			public void after(Map parameterMap, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+				request.setAttribute(ECSideConstants.C_UPDATE_RESULT_MESSAGE,request.getParameter("USERNAME"));
+				ServletUtil.writeDefaultTextToClient(parameterMap, request, response);
+			}
+			
+		});
+		
+		
+		addInterceptor(new DataAccessInterceptor("deleteUser"){
+
+			public void before(Map parameterMap, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+				
+			}
+
+			public void after(Map parameterMap, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+				request.setAttribute(ECSideConstants.C_UPDATE_RESULT_MESSAGE,request.getParameter("USERNAME"));
+				ServletUtil.writeDefaultTextToClient(parameterMap, request, response);
+			}
+			
+		});
+	}
+}
+[/code]
+
+
+已知不足：
+在事务控制方面做的工作几乎为0。
+#{IF}功能不够强大,不支持复杂的逻辑判断。
+所以目前不适合用在复杂的场合。
+另：整个过程输入 输出的sql类型 全是string，所以如果要做类型方面的转换，需要自己在sql语句级别进行。
+
+
+这篇文章没有提供代码，打算下和 ecside 1.1 final一起推出。
+
+希望大家可以针对这个模块提出些建议和意见 谢谢大家了。
+
+

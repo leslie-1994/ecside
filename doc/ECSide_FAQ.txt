@@ -1,0 +1,105 @@
+关于乱码问题: 
+1 请尽量使用ECSIDE最新版本 
+2 请正确配置ECSIDE的过滤器,该过滤器是必须的. 
+3 如果在web.xml内配置了其他的与编码相关的过滤器,请确认不与ECSIDE的过滤器冲突. 
+这里的冲突主要是指: 
+ECSIDE会判断请求的类型,如果请求的类型是AJAX请求,那么就使用UTF-8编码. 
+而如果您自己的编码过滤器没有进行这样的判断,那么就会引起乱码.
+
+
+4 您使用的是was吗? 如果是请尝试打上必要的补丁,WAS有些版本确实存在乱码的BUG.
+
+5 请确认JSP页面的编码 与过滤器的编码一致. 
+例如 
+过滤器配置的编码是GBK 那么: 
+
+
+代码
+ <%@ page language="java" contentType="text/html;charset=GBK" %>   
+....   
+<meta http-equiv="Content-Type" content="text/html; charset=GBK" />   
+
+
+也要配置成GBK.
+
+
+
+
+///////////////////////////////////////////
+///////////////////////////////////////////
+///////////////////////////////////////////
+///////////////////////////////////////////
+///////////////////////////////////////////
+
+
+
+
+对单元格样式的个性设置:
+
+[code]
+<ec:table items="userList" var="rowBean" ...>
+.....
+<ec:column style=".." styleClass="...." .../>
+[/code]
+
+这两个属性相当于 html里的 style和  class
+
+====================================
+他们支持 jsp脚本 
+例如 
+[code]
+<% String cellColor="red"  %>
+....
+<ec:column style="color:<%=cellColor %>" ../>
+[/code]
+
+====================================
+他们支持"公式语言语法"
+例如 
+[code]
+<ec:column style="color:${rowBean.cellColor}" ../>
+[/code]
+其中  cellColor 为 rowBean的一个属性(如果rowBean为vo的话)或一个key(如果rowBean为map的话)
+
+====================================
+style还支持动态脚本语言  (styleClass不支持)
+例如 
+[code]
+<ec:column style="#_EX:VAR.USERID>5 && VAR.USERID<15?'color:red':'' "  />
+[/code]
+其中 VAR是关键字 代表 rowBean 
+
+
+利用以上信息,完全可以控制任意一个单元格的颜色
+
+[code]
+情景一:
+整个列的颜色都变,
+那么只要  style="background-color:red" 就可以了
+
+情景二
+一列中,根据条件不同,颜色不同,且条件比较简单.
+使用脚本语言最合适了
+
+情景三
+一列中,根据条件不同,颜色不同,且条件比较复杂.
+在准备列表数据的时候 例如查询客户信息的时候, 就把记录的颜色信息查询出来,作为一个属性放到 vo或map里
+
+例如 根据复杂条件来决定用户名的显示颜色.
+那么可以给 vo或map加上一个关于颜色的属性,例如 nameColor,然后在准备数据的时候就对nameColor进行赋值.
+然后使用
+<ec:column style="color:${rowBean.nameColor}" ../> 或者
+<ec:column styleClass="${rowBean.nameColor}" ../>
+
+还有一个方法  写一个计算 颜色的工具类,例如
+StyleUtil.getNameColor(Object rowBean) ,该类以每条记录对应的vo或map为参数,返回颜色信息
+
+<ec:column style="color:<%= StyleUtil.getNameColor(pageContext.findAttribute("rowBean"))  %>" ../> 
+
+这样也很好, 当然效率直接取决于条件的复杂性 以及 StyleUtil.getNameColor的写法了
+[/code]
+
+
+以上是目前可行的 对单元格进行定制的方法,不知道能否满足大多数的需求.
+
+如果不可以,麻烦您跟我讲讲您的想法和建议 谢谢

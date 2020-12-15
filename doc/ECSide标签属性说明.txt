@@ -1,0 +1,541 @@
+js函数说明
+tag属性说明
+properties文件说明
+用例演示
+
+
+此处暂时只列出部分属性说明,更多的可以参见原版ec的文档(圈子里有下载) 
+
+
+[code]
+
+原版ec里不再被支持的属性:   
+imagePath   
+showPagination   
+form 这个肯定有人有意见,但是提供另外的方法间接实现需要的功能.   
+  
+form属性原先的目的是,可以让你把ectable包含在一个已经存在的表单内.   
+但是现在的思路是需要你把 那个已经存在的表单里的信息加入到ectable的form内.   
+(使用 <ec:extend location="top/bottom>....</ec:extend> ")   
+这么做可能显得霸道些,但是没有办法,目前很多地方要求必须这么做,因为ecside最终生成的form相对复杂.   
+不过,我总的建议还是不要把ec:table 和别的过多的与ectable无关的表单混合使用.   
+一个页面里完全可以使用多个表单.   
+
+[/code]
+
+
+<ec:table>标签部分属性说明 
+
+[code]
+◆ 属性: tableId
+描述: 
+设置列表的唯一标识,默认为"ec",当一个页面内有多个ECSIDE列表时,必须为每个列表指定不同的tableId.
+
+◆ 属性: theme
+描述: 
+设置列表的风格所使用的主题. 默认为ecside.
+
+◆ 属性: generateScript
+描述: 
+是否自动生成ECSide所需的js脚本. 可选 true/false ( 默认:true ) 
+
+◆ 属性: useAjax
+描述: 
+是否使用ajax技术进行翻页、过滤、排序等操作. 可选 true/false ( 默认:true ) 
+
+◆ 属性: doPreload
+描述: 
+是否使用预读取技术. 可选 true/false ( 默认:true ) 
+
+◆ 属性: classic
+描述: 
+是否使用传统的简单列表. 可选 true/false ( 默认:false ) 
+
+◆ 属性: autoIncludeParameters
+描述: 
+是否开启"自动保留"特性.翻页 过滤 排序时当前页的表单域将以hidden input的形式被保留(传递到新页面). 可选 true/false ( 默认:true ) 
+关于此项的更多说明可参见原版ec手册
+
+◆ 属性: includeParameters
+描述: 
+在关闭"自动保留"时,希望被自动保留的表单域的标示,支持多个,用","分割 
+
+◆ 属性: excludeParameters
+描述: 
+在开启"自动保留"时,希望不被自动保留的表单域的标示,支持多个,用","分割 
+
+补充:
+如果理解了 autoIncludeParameters 的用处 就不难理解以上两个属性的用处了
+注意: excludeParameters 比 includeParameters 有更高的优先级 
+即 excludeParameters="a"  includeParameters ="a" 时 a仍然将被排除
+建议尽量使用 excludeParameters 不要使用 includeParameters ，除非你非常明确自己要包含的东西。
+includeParameters 使用不当会使你忘记包含一些必须包含的东西.
+
+excludeParameters="表单属性名称1,表单属性名称2"    (表单属性名称不能含有半角的逗号)
+includeParameters="表单属性名称3,表单属性名称4" 
+
+
+◆ 属性: toolbarContent
+描述: 
+设置工具条要显示的内容,以及各个元素的前后位置. 
+默认状态是 toolbarContent="navigation|pagejump |pagesize|refresh save add del|export|extend|status"
+例子    toolbarContent="pagejump|navigation|export|extend|status"
+此时 工具条将不显示"页面行数调整"框和"刷新 保存 增删按钮" 同时顺序也会和默认的发生变化
+
+navigation 导航条 
+pagejump 页面跳转
+pagesize 页面行数设置
+refresh 刷新当前页
+save 保存列表记录
+add 添加记录
+del 删除记录
+export 导出按钮区
+extend 自定义扩展区
+status 数据信息区
+◆ 属性: toolbarLocation
+描述: 
+设置工具条要显示的位置(列表的上面还是下面). 可选top/bottom/none, 默认top. 
+
+◆ 属性: paginationLocation
+描述: 
+同toolbarLocation. 
+
+◆ 属性: rowsDisplayed
+描述: 
+设置每页显示的默认记录条数.
+
+◆ 属性: pageSizeList
+描述: 
+设置调整"每页记录数"的下拉框内的候选值.
+例如: pageSizeList="10,20,50,100,1000,2000,all"
+其中的all为增加全部显示功能。
+例子   pageSizeList="10,20,50" 
+此时列表里将只显示 10 20 50供选择
+max:数字 特性 :
+pageSizeList="max:200,10,15,30,50,100,all" 
+如果 10--100以及all中，某一项大过了max的200则 不在列表中显示。
+也可以只使用pageSizeList="max:200" 此时将 使用默认设置，并用max限制。
+
+◆ 属性: nearPageNum
+描述: 
+设置"邻近页导航"的前后区间范围
+
+◆ 属性: maxRowsExported
+描述: 
+设置导出和打印操作所允许的最大记录条数 
+
+◆ 属性: resizeColWidth
+描述: 
+是否允许调整列宽. 可选 true/false ( 默认:true ) 
+
+◆ 属性: minColWidth
+描述: 
+设置调整列宽时,任意一列所允许的最小宽度 
+
+◆ 属性: height
+描述: 
+设置列表的高度.
+
+◆ 属性: minHeight
+描述: 
+设置列表的最小高度 
+
+◆ 属性: xlsFileName
+描述: 
+设置导出xls的文件的文件名. 不指定时为不允许导出xls文件 
+
+◆ 属性: pdfFileName
+描述: 
+设置导出pdf的文件的文件名. 不指定时为不允许导出pdf文件 
+
+◆ 属性: csvFileName
+描述: 
+设置导出csv的文件的文件名. 不指定时为不允许导出csv文件 
+◆ 属性: showPrint
+描述:
+是否显示打印按钮. true/false.
+
+◆ 属性: action
+描述: 
+列表执行翻页 过滤 排序等操作时所要提交的ACTION 
+
+◆ 属性: insertAction
+描述: 
+可编辑列表时,插入数据所要提交的ACTION 
+
+◆ 属性: updateAction
+描述: 
+可编辑列表时,更新数据所要提交的ACTION 
+
+◆ 属性: deleteAction
+描述: 
+可编辑列表时,删除数据所要提交的ACTION 
+
+◆ 属性: shadowRowAction
+描述: 
+显示shadowRow时所要提交的ACTION 
+
+◆ 属性: editable
+描述: 
+是否开启可编辑列表功能.
+
+◆ 属性: sortable
+描述: 
+是否允许对列表进行按列排序
+
+◆ 属性: filterable
+描述: 
+是否开启过滤功能.
+
+
+◆ 属性: title
+描述: 
+设置列表的标题,该标题将显示在列表的上方.
+
+◆ 属性: showTitle
+描述: 
+是否显示列表的title.
+
+◆ 属性: style
+描述: 
+设置列表的table的style,相当于html里的style.
+
+◆ 属性: styleClass
+描述: 
+设置列表的table的style class,相当于html里的class.
+
+◆ 属性: items
+描述: 
+设置要展现的数据对应的集合在内存中存放时使用的名字
+
+◆ 属性: var
+描述: 
+设置指向数据迭代中的当前记录所对应的bean的变量的名称.
+
+◆ 属性: locale
+描述: 
+设置列表的本地化信息. 例如 fr_FR 将使列表使用法文方式显示(前提是已经正确提供相关资源文件).
+
+◆ 属性: interceptor
+描述: 
+自定义列表拦截器.值为对应的拦截器的实现.
+该拦截器可用来添加或修改列表的属性
+◆ 属性: retrieveRowsCallback
+描述: 
+指定列表所使用的分页机制.值可以是自定义的完整的callback类名,也可以是在properties文件内指定的简称
+
+◆ 属性: filterRowsCallback
+描述: 
+指定列表所使用的过滤机制.值可以是自定义的完整的callback类名,也可以是在properties文件内指定的简称
+
+◆ 属性: sortRowsCallback
+描述: 
+指定列表所使用的排序机制.值可以是自定义的完整的callback类名,也可以是在properties文件内指定的简称
+
+关于以上三个属性的使用请见"ECSide列表的RowsCallback机制"文档.
+
+◆ 属性: width
+描述: 
+指定列表的宽度.相当于<table>的width属性
+
+◆ 属性: listWidth
+描述: 
+Specify the location of pagination bar . Acceptable values are up or down.
+
+◆ 属性: listHeight
+描述: 
+Specify the location of pagination bar . Acceptable values are up or down.
+
+◆ 属性: height
+描述: 
+指定列表的高度.相当于<table>的height属性.当值为"auto"时,列表高度将随着列表内容自动调整.
+只有在非classic模式下才有效.
+
+◆ 属性: excludeTool
+描述: 
+Specify whether or not to show the rows displayed bar . Acceptable values are "true" or "false".
+
+◆ 属性: showHeader
+描述:
+是否显示列表表头.
+[/code]
+
+===========================================================
+
+<ec:row>标签
+
+[code]
+◆ 属性: rowId
+描述: 
+列表的行的id,对应<tr>的id属性.
+
+◆ 属性: recordKey
+描述: 
+行所对应的记录的唯一主键值,主要用于gird列表的删改
+
+◆ 属性: highlightRow
+描述: 
+鼠标经过某行时,该行是否变色.
+
+◆ 属性: selectlightRow
+描述: 
+鼠标点击某行时,该行是否变色.
+
+◆ 属性: interceptor
+描述: 
+自定义行拦截器.值为对应的拦截器的实现.
+该拦截器可用来添加或修改行的属性
+
+◆ 属性: ondblclick
+描述: 
+定义鼠标双击事件.相当于<tr>的ondblclick事件
+
+◆ 属性: onclick
+描述: 
+定义鼠标的单击事件.相当于<tr>的onclick事件
+
+◆ 属性: onmouseout
+描述: 
+定义鼠标的onmouseout事件.相当于<tr>的onmouseout事件
+
+◆ 属性: onmouseover
+描述: 
+定义鼠标的onmouseover事件.相当于<tr>的onmouseover事件
+
+◆ 属性: style
+描述:
+相当于<tr>的style.
+
+◆ 属性: styleClass
+描述: 
+相当于<tr>的class.
+
+<ec:extend>标签
+具体的内容可以是任何合法的HTML代码
+◆ 属性: location
+描述: 
+在什么位置添加扩展内容.  
+top: 列表上方(在列表外部)
+bottom: 列表下方(在列表外部)
+留空: 工具条的 extend扩展区
+
+<ec:extendrow>标签
+扩展一行.具体的内容可以是任何合法的<tr>相关的HTML代码
+
+◆ 属性: location
+描述: 
+在什么位置添加扩展内容.  
+bottom: 列表内部的下方,和列表内容主体在一个<table>内
+留空: 同上
+
+[/code]
+
+
+
+===========================================================
+
+<ec:column>标签
+
+[code]
+◆ 属性: columnId
+描述: 
+单元格的id,相当于<td>的id属性
+
+
+◆ 属性: title
+描述: 
+列在列表表头里显示的名称.
+
+◆ 属性: property
+描述: 
+指定该列所对应的列表bean(map)的属性(key).
+
+◆ 属性: alias
+描述: 
+列的别名.
+
+◆ 属性: value
+描述: 
+列的数值.默认为当前行当前列对应的列表bean(map)的属性的值.
+
+
+◆ 属性: viewsAllowed
+描述: 
+指定当前列将在那些视图中被显示,可选项为:html xls csv pdf print
+分别对应于页面展现,导出,打印
+
+◆ 属性: viewsDenied
+描述: 
+指定当前列将在那些视图中被隐藏,可选项为:html xls csv pdf print
+分别对应于页面展现,导出,打印
+
+◆ 属性: tipTitle
+描述: 
+单元格的提示信息,,相当于<td>的title属性
+
+
+◆ 属性: group
+描述: 
+是否对当前列进行编组. true/false.
+
+
+◆ 属性: resizeColWidth
+描述: 
+是否允许调整该列的列宽
+table为classic时无效
+
+◆ 属性: minWidth
+描述: 
+允许调整列宽时,该列所允许的最小宽度,单位像素.
+
+◆ 属性: sortable
+描述: 
+是否允许对该列进行排序.
+
+◆ 属性: filterable
+描述: 
+是否允许对该列进行过滤操作.
+
+
+◆ 属性: editable
+描述: 
+单元格是否允许编辑.
+
+◆ 属性: cellValue
+描述: 
+单元格对应的值,详见"ECSide可编辑列表的使用指南"
+
+◆ 属性: editTemplate
+描述: 
+编辑时,所使用的模板名称,详见"ECSide可编辑列表的使用指南"
+
+◆ 属性: editEvent
+描述: 
+进入编辑转台所使用的页面事件,默认为双击,详见"ECSide可编辑列表的使用指南"
+
+
+◆ 属性: mappingItem
+描述: 
+实现单元格的值,与显示的内容的映射.mappingItem的值为进行映射所使用的map在内存中存放的名称
+
+
+◆ 属性: calc
+描述: 
+指定列所使用的统计方式.值可以是自定义的完整的calc类名,也可以是在properties文件内指定的简称,多个之间用","分割.
+自带的统计有两种total(求和)与average(求平均值).
+
+
+◆ 属性: calcTitle
+描述: 
+指定列所使用的统计方式所对应的统计名称,例如合计,平均等等.多个之间用","分割.
+
+
+◆ 属性: calcSpan
+描述: 
+统计行的统计名称单元格所占用的列数.相当于<td>的colspan属性
+
+
+◆ 属性: cell
+描述: 
+指定列表内该列所使用的cell的实现类.值可以是自定义的完整的cell类名,也可以是在properties文件内指定的简称
+
+◆ 属性: interceptor
+描述: 
+自定义列拦截器.值为对应的拦截器的实现.
+该拦截器可用来添加或修改列的属性
+
+
+◆ 属性: escapeAutoFormat
+描述: 
+是否不进行自动格式的转换.
+
+
+◆ 属性: format
+描述: 
+The format to use for the cell. For instance if used with a date cell then the format can be MM/dd/yyyy.
+
+
+◆ 属性: parse
+描述: 
+Used if the format needs to be interpreted. For instance, a date needs to be parsed in the specific format, such as MM-dd-yyyy.
+
+
+
+◆ 属性: ondblclick
+描述: 
+定义鼠标双击事件.相当于<td>的ondblclick事件
+
+
+◆ 属性: onclick
+描述: 
+定义鼠标的单击事件.相当于<td>的onclick事件
+
+
+◆ 属性: onmouseout
+描述: 
+定义鼠标的onmouseout事件.相当于<td>的onmouseout事件
+
+◆ 属性: onmouseover
+描述: 
+定义鼠标的onmouseover事件.相当于<td>的onmouseover事件
+
+◆ 属性: style
+描述:
+相当于<td>的style.
+
+
+◆ 属性: styleClass
+描述: 
+相当于<td>的class.
+
+
+◆ 属性: width
+描述: 
+设置列的宽度.相当于<td>的width属性
+
+◆ 属性: nowrap
+描述: 
+设置列的宽度.相当于<td>的nowrap属性
+
+[/code]
+
+===========================================================
+
+<ec:parameter>
+为列表所在表单添加属性.属性将以<input type=hidden name= value=>形式加入到form内
+
+[code]
+◆ 属性: name
+描述: 
+属性的名字
+
+◆ 属性: value
+描述: 
+属性的值
+
+[/code]
+
+===========================================================
+
+<ec:attribute>标签
+为它的外层标签增加扩展属性.
+该标签的设计思想来源于xlst里的 <xls:attribute>标签.
+看看 <xls:attribute>标签.的说明和示例可以更好的帮助您理解<ec:attribute>
+
+
+===========================================================
+
+<ec:options>
+帮助生成<select>的option项.
+
+[code]
+◆ 属性: items
+设置要转换成option项的map在内存中存放时使用的名字
+
+◆ 属性: defaultKey
+默认的选项
+
+◆ 属性: tagAttributes
+其他扩展的html标签内的属性
+
+[/code]

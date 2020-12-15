@@ -1,0 +1,202 @@
+ECSide入门
+
+
+注:这个入门并不是最终版,在未来几天内,我会不停的对它进行编辑.回大连后,我会逐步向WIKI上迁移.这个只是一个临时的草稿.
+
+
+
+ECSide是有一个基于jsp tag的开源列表组件.
+简单的说,它就是一组可以帮助你快速实现强大的列表的jsp标签.
+它的工作原理很简单.
+您将要展现的列表的数据集合(Collection),放入request/pagecontext/session内(使用setAttribute方法.这个工作可以在action/servlet里完成,也可以在jsp页面内完成),然后页面跳转到使用ECSide标签的jsp页面,此时ECSide就可以帮助您展现出所需要的列表.
+
+一个简单的流程通常是这样的.
+
+1 客户端请求action/servlet(如 http://10.195.129.101/test/userlist.do)
+2 action接受到请求后,调用相应的BO/dao,执行取列表数据的方法.
+3 取得数据后(通常是一个vo/map的list),将数据放入request内(使用requset.setAttribute(key,value)方法.)
+4 将请求forward到使用ECSide标签的jsp页面.
+5 ECSide将展现出列表.
+
+
+
+
+知道了原理,那么让我们一起来完成一个快速而简单的例子吧.
+现在有一张用户信息表,如下
+
+[code]
+表名称: USER_INFO(用户信息表)
+字段:
+    USERID   (用户编号)
+    USERNAME (用户名)
+    PASSWD   (密码)
+    USERROLE (角色) 0 被锁定  1 普通  2 高级 3 管理员 4超级管理员
+    REGDATE  (注册日期)
+    EMAIL    (EMAIL)
+    GENDER   (性别) 0 未知 1 男 2女
+    MEMO     (备注)
+[/code]
+h2db的建表脚本如下:
+[code]
+create table USER_INFO (
+    USERID int not null identity,
+    USERNAME varchar(80) not null,
+    PASSWD varchar(255) not null,
+    USERROLE varchar(10) default 1,
+    REGDATE varchar(20) ,
+    EMAIL varchar(128) ,
+    GENDER varchar(2) default 0,
+    MEMO varchar(1024)  ,
+    constraint PK_USER_INFO primary key (USERID)
+);
+[/code]
+
+对应VO:
+[code]
+public class UserInfo {
+	private Integer userId;
+	private String userName;
+	private String passwd;
+	private String userRole;
+	private String regDate;
+	private String email;
+	private String gender;
+	private String memo;
+	
+	/* 略去getter setter方法 */
+
+}
+[/code]
+
+对应DAO如下(假设DAO里只有一个方法,取得全部的用户信息,返回的是VO的List):
+[code]
+public class UserDAO extends BaseDAO  {
+
+	public List getAllUsers(){
+		StringBuffer bufSql = new StringBuffer("SELECT * FROM USER_INFO WHERE 1=1");
+		
+		Connection conn=null;
+		PreparedStatement pstmt = null;
+		ResultSet rest = null;
+
+		List allUsers=null;
+
+		try {
+			conn = getConnection();
+			pstmt = ConnectionUtils.prepareStatement(conn,bufSql.toString());
+			rest = pstmt.executeQuery();
+			allUsers=new ArrayList();
+			UserVO userVO=null;
+			while (rest.next()) {
+				userVO=new UserVO();
+				/* 略去将ResultSet结果放入VO的过程 */
+				allUsers.add(userVO);
+			}
+		} catch (Exception e) {
+			allUsers=null;
+		}finally{
+			close(rest, pstmt, conn);
+		}
+		
+		return allUsers;
+	}
+
+}
+[/code]
+
+该简单例子假设该表数据量不大:500以内,采用ECSide的java内存分页技术(关于java内存分页和数据库层分页的说明请参见:...).
+
+由于此例子实在简单,所以略去BO层.
+
+action(DispatchActionSupport)代码如下:
+
+[code]
+public class MyTestAction extends DispatchAction {
+
+	// java内存分页
+	public ActionForward getAllUsers(ActionMapping mapping, ActionForm form,
+	HttpServletRequest request, HttpServletResponse response)
+	throws Exception {
+
+		// 取得DAO,这里是从spring上下文中取得指定DAO,略去spring相关代码
+		UserDAO userDAO=(UserDAO)getBean("userDAO");
+
+		List allUsers = userDAO.getAllUsers();
+
+//将结果集合放入request内,记住键名"allUsers".
+		request.setAttribute("allUsers", allUsers);
+
+	
+		//forward到列表展现页面
+		return mapping.findForward("userlistPage");
+
+	}
+}
+
+[/code]
+
+访问该action的URL为
+http://localhost:8080/ecsdemo/simpledemo.do?actionMethod=getAllUsers
+
+jsp页面:
+引入标签声明
+[code]
+<%@ taglib uri="http://www.ecside.org" prefix="ec" %>
+[/code]
+
+通常jsp页面内取得应用上下文是必须的.
+[code]
+<%
+String webapp=request.getContextPath();
+%>
+[/code]
+
+引入ECSide必要的css js
+[code]
+<link rel="stylesheet" type="text/css" href="<%=webapp%>/common/css/ECSide_style.css" />
+<script type="text/javascript" src="<%=webapp%>/common/js/prototype_mini.js" ></script>	
+<script type="text/javascript" src="<%=webapp%>/common/js/ECSide.js" ></script>
+[/code]
+
+ECSide的标签,也是展现列表最关键的环节:
+
+[code]
+<ec:table items="allUsers" var="user" 
+retrieveRowsCallback="process" 
+action="${pageContext.request.contextPath}/simpledemo.do?actionMethod=getAllUsers"
+title="用户列表" 
+
+width="100%" 
+classic="true"
+>
+<ec:row>
+	<ec:column width="50" property="_0" title="序号" value="${GLOBALROWCOUNT}" />
+	<ec:column width="80" property="userRole" title="角色"   />
+	<ec:column			  property="userName" title="用户名" />
+	<ec:column width="100" property="passwd" title="密码"  />
+	<ec:column width="120" property="email" title="电子信箱" />
+	<ec:column width="70" property="gender" title="性别"  />
+</ec:row>
+</ec:table>
+	
+
+[/code]
+
+<ec:table> ECSide的主标签,可以理解为 html里的table标签
+
+items指明列表集合在request的属性表里的键名, var指明迭代列表集合时,单条记录所用的变量名.此处类似jstl里的c:forEach标签.
+retrieveRowsCallback="process"  指明采用ECSide的java内存分页技术(关于java内存分页和数据库层分页的的详细说明参见....). 
+action指明翻页排序等操作时,所要调用的action的url,在这里你可以继续使用展现列表所使用的action
+title="用户列表"  列表的标题
+width="100%"  列表的宽度
+classic="true"  使用传统方式列表 (传统方式与ECSide方式区别的详细说明参见....)
+
+<ec:row> 行标签,可以理解为类似html里的tr标签
+
+<ec:column> 列标签,可以理解为类似html里的td标签
+
+width列的宽度, 类似td的 width属性 (关于 ec:column 的 width属性的详细说明参见....)
+property 该列所要显示的数据在VO中对应的属性字段的名字(如果每条数据是存放在VO里的话),或MAP里对应的key的名字(如果每条数据是存放在MAP里的话)
+title 表头中该列所要显示的名称
+value 该列所要显示的内容.当你要显示的内容默认不是VO/MAP里的值的时候,你才需要使用value属性,为该列手动的指定一个值.
+${GLOBALROWCOUNT}为ECSide内置的一个特殊变量,表示的数据所在的行号,针对全部数据而言,${ROWCOUNT}是针对当前页面而言.

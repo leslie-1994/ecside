@@ -1,0 +1,383 @@
+
+ecside介绍：
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ecside是一个开源的列表组件。
+他源自著名开源列表组件 eXtremeComponents （http://www.extremecomponents.org），
+但现在已经脱离eXtremeComponents,独立发展（仍有大量代码来自 eXtremeComponents）。
+由于各种协议和各种授权的问题，目前还不能独立成为一个开源项目，但“做最实用易用的列表组件”是ecside最终的目标。
+作者： fins ( name: Wei Zijun    email:fins@163.com   blog:http://fins.javaeye.com )
+
+(详见readme.txt)
+
+
+
+基础功能的使用请参考 eXtremeComponents 官方网站(http://www.extremecomponents.org)的wiki（有中文版）
+
+增强的功能简介：
+
+1  ec:table属性增加  toolbarLocation
+ 用来控制工具条在上还是在下显示
+ 可选值 "bottom" "top" "none"（不显示） 
+
+
+2  ec:table属性增加  toolbarContent
+ 可自定义工具条显示那些内容，以及排列顺序
+默认： toolbarContent="navigation|pagejump |pagesize|refresh save add del|export|extend|status"
+例子    toolbarContent="pagejump|navigation|export|extend|status"
+此时 工具条将不显示"页面行数调整"框 同时顺序也会和默认的发生变化
+
+navigation 导航条 
+pagejump 页面跳转
+pagesize 页面行数设置
+export 导出按钮区
+extend 自定义扩展区
+status 数据信息区
+
+同时 为ec:table增加属性 nearPageNum="数字", 
+用来设置导航条前后显示的邻近页数,不设置将使用默认值，设置为0则不显示邻近页
+
+3  ec:table属性增加  pageSizeList
+可用来设置“页面行数选择列表”中的具体数值
+默认：pageSizeList="10,20,50,100,1000,2000,all"
+其中的all为增加全部显示功能。
+例子   pageSizeList="10,20,50" 
+此时列表里将只显示 10 20 50供选择
+max:数字 特性 :
+pageSizeList="max:200,10,15,30,50,100,all" 
+如果 10--100以及all中，某一项大过了max的200则 不在列表中显示。
+也可以只使用pageSizeList="max:200" 此时将 使用默认设置，并用max限制。
+
+
+
+4 ec:table属性增加 xlsFileName  和 pdfFileName
+用来快捷的实现导出xls文件
+如果你只是想使用默认的方式导出 xls 和 pdf文件 不用再使用 ec:exportXls  ec:exportPdf标签了
+直接在ec:table里使用这个属性就ok.
+使用方法 xlsFileName="文件名.xls"
+
+
+
+5  ec:table属性增加  showPrint
+显示打印按钮，该功能只能在ie 5.5以上浏览器中使用 没有使用第三方组件 使用了ie内置组件
+使用方法： showPrint="true"
+打印按钮将作为导出的一种类型而存在
+
+
+
+6 ec:table属性增加  resizeColWidth 和 minColWidth
+默认：  resizeColWidth="false"  minColWidth="20"
+用来实现手动调节列宽的功能 在ie 5.5+ 和ff 2.0下测试通过
+resizeColWidth="true" 实现列宽调整
+minColWidth="20" 调整时列的最小宽度
+目前不能和过滤功能一同使用(当filterable="true"时候不可以用)
+
+
+7 为ec:row 添加更多的html事件支持，现支持：onmouserover onmouserout onclick ondbclick
+
+8 为ec:column 添加更多的html事件支持，现支持：onmouserover onmouserout onclick ondbclick
+
+9 为ec:table ec:row ec:column 增加了 tagAttributes属性
+该属性用来为元素增加一些自定义的html属性
+例如  ec:column 现在并不支持  onmouseup事件
+可以通过下面的方式实现
+
+<ec:column tagAttributes="onmouseup=\"alert('test mouse up');\" " ....... 
+而标准的html里的title也是ec:column不支持的属性
+（因为ec的title用来设置表头的名字了）
+所以要自己添加。
+<ec:column tagAttributes="title=\"双击编辑\"" .... 
+
+
+10 ec:column属性增加 ellipsis 
+实现单元格内数据过长的时候 自动截短并加"..."的功能 ie only
+因为ff不支持 text-overflow: ellipsis; 
+使用 ellipsis="true"
+使用时 还要为ec:table加上 style="table-layout:fixed;" (如果您已经使用了调整列宽功能 则不用添加)
+
+11 ec:column属性增加  headerSpan
+实现表头的跨列显示 
+使用
+<ec:column  headerSpan="2" ...
+<ec:column  headerSpan="0" ...
+注意 当把 一个column 的 headerSpan=设置为 n的时候
+那么他下面的 n-1个 column 的 headerSpan 一定要为 0 (这个以后会想办法修正 现在这么处理太麻烦了)
+
+
+12 ec:column属性增加  calcSpan
+ 实现统计行的标题跨列显示
+ 使用  
+ <ec:column  calc="total" calcTitle= "合计" calcSpan="2" ....
+
+
+
+ 13 增加 ec:extendrow 标签
+在列表前/后加一行或多行 取决于你的html代码怎么写 因为这个是绝对自由的 连tr标签都要自己写
+ before="true"  (true top false(默认))
+ 当 before="top"的时候 所加行会出现在 列表表头的上面
+ 这样你可以做多行表头了  （但这时候 不支持列宽调整 想支持需要自己做些动作 详见示例文件demo2.jsp）
+例如
+	<ec:extendrow before="true">
+	<tr>
+	<td style="background-color:#ffeedd" >*列表前扩展行</td>
+	<td style="background-color:#ffeedd">可以在这里加一些自定内容</td>
+	<td style="background-color:#ffeedd" colspan="2">该行与ectable在同一table内</td>
+	</tr>
+	</ec:extendrow>
+
+	<ec:extendrow>
+	<tr>
+	<td style="background-color:#eeddff">&#160;</td>
+	<td style="background-color:#eeddff">*列表后扩展行</td>
+	<td style="background-color:#eeddff">可以在这里加一些自定内容</td>
+	<td style="background-color:#eeddff">该行与ectable在同一table内</td>
+	</tr>
+	</ec:extendrow>
+
+
+
+ 14 增加 ec:extend 标签
+用来在toolbar内增加一些自定义的html代码 属性 
+例如 <ec:extend><a href="#">自定义扩展内容</a></ec:extend>
+这时 该连接 将会出现在 toolbarContent 中的 extend所在位置
+
+
+ 15 增加 ec:extendbar 标签
+在列表前/后加些html代码  属性  before="true"  (true top false(默认))
+如果要加的东西比较多  建议使用这个 而不要使用ec:extend
+ec:extendbar 添加的内容不会和 组件自带的tool放到一行
+ 当 before="top"的时候 所加内容会出现在 列表和列表标题之间
+例如
+	<ec:extendbar before="true" >
+		<span style="color:#999999">*工具条 前 扩展块:可以在工具条前加些你自己想加的东西，<b>所加内容和ectable在同一form内</b></span>
+		</ec:extendbar>
+	<ec:extendbar>
+		<span style="color:#999999">*工具条 后 扩展块:可以在工具条后加些你自己想加的东西，<b>所加内容和ectable在同一form内</b></span>
+	</ec:extendbar>
+
+
+16 增加了cell类型 
+复选框 cell="checkbox"  headerCell="checkbox" 
+单选框 cell="radiobox"  headerCell="riadiobox"
+例如
+<ec:column cell="checkbox"  headerCell="checkbox" 
+alias="chkBoxNameXXX" value="chkValue${pre.nickname}" 
+width="22" viewsAllowed="html" />
+注意 value对应生成的 checkBox 的 value ,alias 对应生成的 checkBox 的name
+
+
+17 增加页面变量 ${TOTALROWCOUNT} 用来标示当前纪录在全部记录中的行数
+（${ROWCOUNT}用来标示当前纪录在当前页中的行数）
+例子
+<ec:column property="name" title="姓名" width="160">${TOTALROWCOUNT},${pre.name}</ec:column>
+
+
+18 增加了“固定列表头，滚动列表体”(“列表内部滚动条”)的功能
+这个功能实现起来比我一开始想像的复杂
+不是简单的使用一个 div overflow:scroll就可以搞定的
+虽然功能是支持了 但是代码肯定还有很多bug或者是可以改进的地方
+欢迎大家积极的提出宝贵的意见 谢谢了
+
+使用方法：
+ec:table标签内 增加
+listHeight="数字" 属性 （指定列表体的高度）
+同时把要指定 width="数字" 不能省略 同时要使用绝对大小 而不要使用百分比
+详见例子:
+demo0.jsp
+
+
+
+19 增加shadowRow功能
+shadowRow我自己瞎起的名字 解释如下：
+每行下面可以再加一个子行 这个行里显示什么可以由大家自己定义 
+常见的应用是在有些论坛 论坛主题列表里 当你点击行开头的小加号的时候 会在这行下面展开一个区域 那里面显示的是主帖的内容. 
+我们可以把这个扩展一下 利用ajax从后台去读取我们想读取的信息,这样我们就可以做任何我们想做的事情了) 
+该功能是不通过标签或java代码实现 纯js实现。
+详见例子 demo0.jsp （大家一定要注意看demo0.jsp里的注释啊 呵呵）
+其实有了这个功能，大家已经可以自己比较容易的实现可编辑表格的功能了 呵呵 过一阵我会发一个例子上来
+
+
+20 ec:table 增加了 excludeParameters 和 includeParameters 属性
+使用后，ecside将自动排除或保留属性中所指定的“表单属性”
+这个如果你理解了 autoIncludeParameters 的用处 就不难理解这两个属性的用处了
+注意: excludeParameters 比 includeParameters 有更高的优先级 
+即 excludeParameters="a"  includeParameters ="a" 时 a仍然将被排除
+建议尽量使用 excludeParameters 不要使用 includeParameters ，除非你非常明确自己要包含的东西。
+includeParameters 使用不当会使你忘记包含一些必须包含的东西.
+
+excludeParameters="表单属性名称1,表单属性名称2"    (表单属性名称不能含有半角的逗号)
+includeParameters="表单属性名称3,表单属性名称4" 
+
+
+
+21 实现了灵活的可定制的“可编辑列表”：
+在ec:column 中指定下列属性：
+
+cellName="这个cell在数据库中真正对应的列名，省略时则自动使用 property对应的名称"
+cellValue="这个cell在数据库中真正对应的值"
+cellEdit="a1,a2,a3"  
+	a1编辑类型(目前可选input select 其他如radio等还不完善)，
+	a2对应的模版textarea的ID(默认是 "ec_edit_template_'+编辑类型 ), 
+	a3触发编辑的事件（默认是ondblclick）
+模版为一段写在textarea内的表单域的html代码，书写是完全自由的 但是一定要注意不要缺少必要的事件方法和属性。
+
+
+22 增加了 高亮显示选种行的功能，使用 ec:table属性: selectlightRow="true"
+
+
+23 为ec:table增加了 maxRowsExported="数字" 属性，用来限制导出大最大条数， 
+如果数据超过这个数目，则不执行导出操作。
+
+
+24 实现了cell的映射功能（详见示例的性别 和 角色列）
+用法：
+<ec:column mappingItem="用来映射的MAP在context内的key" mappingDefaultValue="当找不到映射值时要使用的默认值".../>
+例如，在示例中，角色的信息以 “标识--名称”的形式放到了一个 map内
+在action中 把这个map放到了 request.setAttribute("USERROLE_MAP", CommonDictionary.USERROLE);内
+在页面使用
+<ec:column property="USERROLE" title="角色" mappingItem="USERROLE_MAP" mappingDefaultValue="[错误的角色]"/>
+就会自动将名称显示出来。
+
+
+25 做了一个简单的小标签 用来从map生成 select的option列表
+<ec:options items="MAP在context内的key" defaultKey="默认选中的option的value" tagAttributes="附加的html属性"/>
+
+
+
+还有很多细节的改动，暂略...
+
+
+
+内部变化：
+
+
+1 提炼了ectable生成的js 
+ectable 原先的实现会在页面内生成大量的js代码 非常不好 
+现在翻页相关的js代码全部提炼成了 js函数
+
+2 翻页按钮的外观提炼成由css决定 而不是图片决定。 
+ectable原版生成的是 <img ... src="图片路径" /> 
+现在生成的是 <input type="button" class="样式" /> 
+这样要改变外观 只要去修改“样式” 中的背景图片就ok了 
+filter clear 按钮 暂时还没有这么处理
+
+3 ！！！翻页机制全部使用ajax实现！！！ 
+(没有使用任何的ajax后台框架(如dwr ajaxAnywhere)，纯js端实现) 
+filter 排序 功能还没有使用ajax
+
+4 支持 预查询功能 （利用ajax实现） 
+例如在用户察看 第5 页数据的时候，系统会偷偷的把 上一页 和下一页的数据也查出来 
+并放到隐藏的textarea内 ，翻页的时候 无需再查询 
+当然 这个功能有利弊，所以是可设置是否开启
+
+
+5 将导出excel所使用的组件由poi切换成了 jxl 
+原因有2 
+1 jxl这个项目没有死 仍然在继续发展 
+2 jxl似乎对内存要求更小 
+(poi在导出20000条纪录的时候outofmemery了,jxl则顺利完成任务)
+
+jxl官方网址 
+http://www.andykhan.com/jexcelapi/index.html 
+
+
+6 xls导出方式修改 如果了解代码的人一定知道 默认的导出xls时 是导出的vo/map里的原始数值 
+而不是页面实际显示的内容，这个问题现在解决了。
+
+
+7 代码进行了较大规模的重构 分离出了tool模块(但这个模块还不够灵活 下一版本打算在这个基础上争强扩展性灵活性) 
+你可以自己写tool来取代组件内设的tool
+组件默认的 tool 配制在 extremetable.properties 文件内
+
+tool.navigation=org.ecside.tool.PageNavigationTool
+tool.pagejump=org.ecside.tool.PageJumpTool
+tool.pagesize=org.ecside.tool.PageSizeTool
+tool.export=org.ecside.tool.ExportTool
+tool.status=org.ecside.tool.StatusTool
+tool.extend=org.ecside.tool.ExtendTool
+tool.blank=org.ecside.tool.BlankTool
+tool.|=org.ecside.tool.SeparatorTool
+tool.,=org.ecside.tool.NewLineTool
+
+如果你想实现 自己的 导航 可以 继承 抽象类BaseTool
+然后修改配制 例如
+tool.navigation=com.mytest.MyNavigationTool
+
+
+
+
+
+
+
+
+
+
+关于ECSide 和 eXtremeComponents 中分页、排序、过滤的疑问的解答
+
+
+最近很多人都问我关于ecside展现列表、排序、过滤相关的问题:
+例如 "如何基于数据库操作" "为什么排序不好用" "为什么排序只是当前页" "为什么过滤只是当前页" 等等.
+在这里我想通过该帖一并回答.如有说的不明白或者不对的地方欢迎大家回帖讨论.
+
+首先ecside展现列表、排序、过滤(该三种操作以下简称为 RSF )的实现原理完全和原版EC一样,
+如果你对原版EC的retrieveRowsCallback、sortRowsCallback、filterRowsCallback 非常熟悉，那么可以忽略此文.
+
+先来简单介绍一下RSF操作方式.  
+ecside支持两种RSF方式:   基于java collection层 和 基于数据库层,下面分别介绍:
+
+一:基于java collection层:
+这是ec的默认实现方式, 最简单易用.
+
+你要做的就是将整个列表所要展现的全部数据放入collection 内,并交给EC来处理.
+其中RSF操作,全部由EC在内存中完成,由于你已经将全部数据放入了collection中,
+所以排序 过滤都是基于全部数据的.
+
+你要在DAO中做的就是一个 查询操作,SQL语句中不需要加入 关于排序 分页 过滤的代码.
+
+这种方式的优点非常明显:实现简单.
+
+缺点同样明显,而且在很大程度上是致命的: 数据量大的时候速度慢,而且很可能outofmemery.
+
+
+这时候我们就需要第二种方式了:
+
+二:基于数据库层:
+
+在这种方式下,EC的角色发生了一点点变化.
+此时,EC负责把 collection 里的内容展现出来, 同时会向你提供RSF相关的参数.
+而这些参数需要你自己手动取得 并传入到DAO中(当然EC提供了很多方便的方法来帮助你取得这些参数),
+具体功能的实现需要你自己在DAO中组织相应的SQL语句
+
+这种方式的优缺点正好和方式一相反.
+
+
+
+两种基本的实现方式介绍完了,下面讲一下实现:
+
+大家可以看一下 ecside.properties 文件中的下列内容
+
+
+table.filterRowsCallback.process=org.extremecomponents.table.callback.ProcessRowsCallback
+table.filterRowsCallback.limit=org.extremecomponents.table.callback.LimitCallback
+
+table.sortRowsCallback.process=org.extremecomponents.table.callback.ProcessRowsCallback
+table.sortRowsCallback.limit=org.extremecomponents.table.callback.LimitCallback
+
+table.retrieveRowsCallback.process=org.extremecomponents.table.callback.ProcessRowsCallback
+table.retrieveRowsCallback.limit=org.extremecomponents.table.callback.LimitCallback
+
+其中 ProcessRowsCallback 采用了方式一 ,LimitCallback采用了方式二
+而table.retrieveRowsCallback.default会告诉EC你默认使用的是哪个.
+同样你也可以在 ec:table 标签里 指定 
+<ec:table filterRowsCallback="process/limit"  sortRowsCallback="process/limit"  retrieveRowsCallback="process/limit" ...
+
+大家可能还看到了 org.ecside.table.callback.CommonLimitCallback 这个是我自己随意组合出来的一个rowcallback
+他在执行分页的时候,使用了方式二,而排序 过滤的时候使用了方式一
+所以,大家可能会发现,DEMO中的排序 过滤方法只对当前页有效.
+我这么做其实是一种偷懒的方式,但多数情况下,正如网友所说"只排当页数据毫无意义",你们说的没错,的确如此:)
+
+我会在新版本的DEMO中提供两种方式的完整的实例,还请大家耐心等待 :)
+
+
+
+
+
